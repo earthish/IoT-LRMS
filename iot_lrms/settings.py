@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
+from decouple import Csv, config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-rdn%)x@6qe-nr1*jco)kj+334m5xxnf7rvqn)j-xye3_$pkzx4'
+SECRET_KEY = config('SECRET_KEY')  # no default: startup fails if it is missing
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 
 # Application definition
@@ -37,6 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # required by allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'rest_framework',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -47,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'iot_lrms.urls'
@@ -75,8 +85,12 @@ WSGI_APPLICATION = 'iot_lrms.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
+        'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
+        'USER': config('DB_USER', default=''),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default=''),
+        'PORT': config('DB_PORT', default=''),
     }
 }
 
@@ -121,3 +135,79 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# --- Users and authentication ---
+
+AUTH_USER_MODEL = 'users.User'
+
+# Only emails on exactly these domains may sign in: xim.edu.in (employees)
+# and stu.xim.edu.in (students). Checked server-side in users/validators.py.
+ALLOWED_EMAIL_DOMAINS = config(
+    'ALLOWED_EMAIL_DOMAINS', default='xim.edu.in,stu.xim.edu.in', cast=Csv()
+)
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # admin login for superusers
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Google is the only way in. SOCIALACCOUNT_ONLY removes allauth's password
+# login, signup, password reset and email-management pages.
+SOCIALACCOUNT_ONLY = True
+# allauth's own verification emails are not used (and SOCIALACCOUNT_ONLY
+# requires 'none'). Our adapter instead requires Google's email_verified flag.
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# The domain and verified-email checks live in these adapters.
+ACCOUNT_ADAPTER = 'users.adapters.XimAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'users.adapters.XimSocialAccountAdapter'
+
+# Email is the identifier; there is no username field.
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*']
+
+# If the verified Google email matches an existing account (for example a
+# superuser made with createsuperuser), log into that account and link Google
+# to it, instead of showing a sign-up form. Safe because Google is trusted and
+# our adapter already requires a verified XIM email. allauth also wipes that
+# account's password, so from then on it signs in with Google only.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+# The fallback sign-up form must not let users edit the email Google gave us.
+SOCIALACCOUNT_FORMS = {'signup': 'users.forms.GoogleSignupForm'}
+
+SOCIALACCOUNT_LOGIN_ON_GET = True  # "Sign in with Google" is a plain link
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID', default=''),
+            'secret': config('GOOGLE_CLIENT_SECRET', default=''),
+        },
+        'SCOPE': ['profile', 'email'],
+        # No "hd" hint: it accepts only one domain and we have two. It was
+        # only a UX hint anyway; the real check is server-side.
+        'AUTH_PARAMS': {'prompt': 'select_account'},
+    }
+}
+
+LOGIN_REDIRECT_URL = '/'
+
+# --- Django REST Framework ---
+
+REST_FRAMEWORK = {
+    # Session auth only (the session allauth creates after Google login).
+    # DRF's default also enables HTTP Basic auth, which would accept a
+    # password and sidestep Google, so it is left out on purpose.
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
