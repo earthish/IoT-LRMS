@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>IoT-LRMS</title>
+</head>
+<body>
+  <!-- TEMPORARY page until the React frontend exists. -->
+  <h1>Signed in</h1>
+  <p>You are signed in as <strong>{{ user.email }}</strong> ({{ user.get_role_display }}).</p>
+
+  {% if user.is_staff %}
+    <p><a href="/admin/">Go to the admin</a></p>
+  {% endif %}
+
+  <!-- allauth only signs out on POST, so a link would not work. -->
+  <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    <button type="submit">Sign out</button>
+  </form>
+</body>
+</html>
