@@ -205,3 +205,21 @@ class HomePageTests(TestCase):
         self.assertContains(response, "ucse24044@stu.xim.edu.in")
         self.assertContains(response, "Student")
         self.assertNotContains(response, "/admin/")  # students are not staff
+
+
+class StaffFlagTests(TestCase):
+    def test_is_staff_follows_role(self):
+        user = User.objects.create_user("x@xim.edu.in")
+        self.assertFalse(user.is_staff)  # students are not staff
+        for role in (User.Role.LAB_ASSISTANT, User.Role.FACULTY):
+            user.role = role
+            user.save()
+            self.assertTrue(user.is_staff)
+        user.role = User.Role.STUDENT  # demoted again
+        user.save()
+        self.assertFalse(user.is_staff)
+
+    def test_superuser_keeps_staff(self):
+        admin = User.objects.create_superuser("admin@xim.edu.in", "pass12345!")
+        admin.save()
+        self.assertTrue(admin.is_staff)
