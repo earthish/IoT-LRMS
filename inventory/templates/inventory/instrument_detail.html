@@ -33,6 +33,8 @@
         {% include "inventory/_bar.html" %}
       </div>
 
+      {% include "issue_requests/_add_to_basket.html" %}
+
       {% if item.is_bookable %}
       <p class="m-0 inline-flex items-center gap-2 self-start rounded-full bg-sky-pale px-3.5 py-2 text-sm font-semibold text-deep">
         Shared resource · used by time slot

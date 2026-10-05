@@ -1,0 +1,6 @@
+{# Request status pill. Needs `issue_request`. #}
+<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-[5px] text-xs font-bold
+  {% if issue_request.status == 'pending' %}bg-warn-bg text-warn-text
+  {% elif issue_request.status == 'rejected' %}bg-danger-bg text-danger-text
+  {% elif issue_request.status == 'returned' %}bg-idle-bg text-idle-text
+  {% else %}bg-sky-deep text-deep{% endif %}">{{ issue_request.get_status_display }}</span>

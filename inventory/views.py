@@ -4,6 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 
+from issue_requests import basket
+from issue_requests.models import IssueRequest, IssueRequestItem
+from issue_requests.services import request_blocker
+
 from . import services
 from .models import Category, Instrument
 
@@ -100,4 +104,16 @@ def instrument_list(request):
 def instrument_detail(request, pk):
     instrument = get_object_or_404(Instrument.objects.select_related("category"), pk=pk)
     instrument.badge = services.get_badge(instrument)
-    return render(request, "inventory/instrument_detail.html", {"instrument": instrument})
+    # Can this person request it? (None means yes; otherwise the reason is shown.)
+    already_open = IssueRequestItem.objects.filter(
+        request__user=request.user,
+        instrument=instrument,
+        request__status__in=[IssueRequest.Status.PENDING, IssueRequest.Status.APPROVED],
+    ).exists()
+    context = {
+        "instrument": instrument,
+        "request_blocker": request_blocker(request.user, instrument),
+        "open_request_exists": already_open,
+        "basket_quantity": basket.quantity_of(request, instrument.pk),
+    }
+    return render(request, "inventory/instrument_detail.html", context)

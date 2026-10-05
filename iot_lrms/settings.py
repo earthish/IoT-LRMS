@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'inventory',
+    'issue_requests',
 ]
 
 MIDDLEWARE = [
@@ -73,6 +74,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'issue_requests.context_processors.requests_summary',  # navbar counts
             ],
         },
     },

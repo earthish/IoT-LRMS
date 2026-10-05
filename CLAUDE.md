@@ -64,12 +64,16 @@ Instrument
   quantity_total, quantity_available   # for components with multiple units
   qr_code (generated)
 
-IssueRequest
-  user -> User, instrument -> Instrument, purpose, course_or_project (optional)
+IssueRequest            # one request = a basket of one or more instruments
+  user -> User, purpose, course_or_project (optional),
+  duration_days (set by the student, max 30; due_at = issued_at + duration_days),
   status: pending | approved | rejected | issued | returned
   requested_at, reviewed_by -> User (nullable), reviewed_at,
   issued_at, due_at, returned_at,
   condition_on_issue, condition_on_return
+
+IssueRequestItem        # one line per instrument in the request
+  request -> IssueRequest, instrument -> Instrument, quantity (>= 1)
 
 Booking
   resource -> Instrument (is_bookable=True), user -> User,
@@ -88,11 +92,11 @@ OracleSuggestion
 **Booking conflict prevention.** Two bookings for the same resource must never overlap. Enforce this at the database level, not just in Python, to avoid race conditions when two students book at once. Use PostgreSQL with `django.contrib.postgres.constraints.ExclusionConstraint` on the resource and the time range (`RangeOperators.OVERLAPS`, ignoring cancelled bookings). Also validate in the serializer so users get a clear error message. Enforce `end_time > start_time` and no bookings in the past.
 
 **Issue request workflow.**
-1. Student creates a request (`pending`) for an available instrument.
-2. Lab assistant or faculty approves or rejects it (record who and when).
-3. On issue, decrement availability, set `due_at`, record condition notes.
+1. Student adds available instruments to a basket (kept in the session), then submits it as one request (`pending`). A submitted request cannot be edited; forgotten items go in a new request. A student may have only one open (pending or approved) request per instrument.
+2. Lab assistant or faculty approves or rejects the whole request (record who and when). Approving does not reserve stock.
+3. On issue, decrement availability for every item, set `due_at`, record condition notes. All or nothing: if any item has too few units left, nothing changes.
 4. On return, increment availability, record return condition.
-5. Every transition writes a `UsageLog` entry and triggers a notification.
+5. Every transition writes a `UsageLog` entry per item and triggers a notification (notifications are wired in when the `notifications` app is built).
 6. Wrap state changes that touch quantity in `transaction.atomic()` with `select_for_update()` so two approvals cannot over-issue the same item.
 
 **Notifications.** Send an email on request approved, request rejected, and an upcoming due date. Keep the sending logic in `notifications/` so it can be swapped out later.

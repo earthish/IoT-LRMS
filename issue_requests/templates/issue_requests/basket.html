@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Your request · IoT-LRMS{% endblock %}
+
+{% block content %}
+<div class="mx-auto flex max-w-[1000px] flex-col gap-8 px-6 pb-24 pt-[clamp(32px,5vw,56px)]">
+
+  <div class="flex flex-col gap-3">
+    <span class="text-[13px] font-bold uppercase tracking-[0.12em] text-accent">Request</span>
+    <h1 class="m-0 text-[clamp(30px,4vw,44px)] font-extrabold leading-[1.05] tracking-tighter">Your request</h1>
+    <p class="m-0 text-base leading-relaxed text-body">Add everything you need, then submit once. A lab assistant reviews the whole request. Forgot something? Send another request.</p>
+  </div>
+
+  {% if items %}
+  <div class="grid items-start gap-6 md:grid-cols-[1fr_380px]">
+
+    {# Items #}
+    <ul class="m-0 flex list-none flex-col gap-3 p-0">
+      {% for instrument, quantity in items %}
+      <li class="flex flex-wrap items-center justify-between gap-4 rounded-card border border-line bg-white p-4">
+        <div class="flex min-w-0 flex-col gap-0.5">
+          <span class="text-xs font-bold uppercase tracking-[0.08em] text-muted">{{ instrument.category.name }}</span>
+          <a href="{% url 'inventory:detail' instrument.pk %}" class="text-base font-bold text-ink no-underline hover:text-accent">{{ instrument.name }}</a>
+          <span class="text-[13px] text-muted">{{ instrument.quantity_available }} available now</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <form method="post" action="{% url 'issue_requests:basket_update' instrument.pk %}" class="flex items-center gap-2">
+            {% csrf_token %}
+            <label for="qty-{{ instrument.pk }}" class="sr-only">Quantity of {{ instrument.name }}</label>
+            <input id="qty-{{ instrument.pk }}" type="number" name="quantity" min="1" max="{{ instrument.quantity_available }}" value="{{ quantity }}"
+                   class="h-11 w-20 rounded-xl border border-line-strong bg-white px-3 text-center text-base font-bold text-ink">
+            <button type="submit" class="h-11 cursor-pointer rounded-full border border-line-strong bg-white px-4 text-sm font-semibold text-ink hover:bg-surface">Update</button>
+          </form>
+          <form method="post" action="{% url 'issue_requests:basket_remove' instrument.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="h-11 cursor-pointer rounded-full px-3 text-sm font-semibold text-danger-text underline">Remove</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+      <li><a href="{% url 'inventory:list' %}" class="inline-flex min-h-11 items-center text-sm font-semibold">+ Add more items</a></li>
+    </ul>
+
+    {# Details and submit #}
+    <form method="post" novalidate class="flex flex-col gap-5 rounded-card border border-line bg-white p-6">
+      {% csrf_token %}
+      <h2 class="m-0 text-xl font-extrabold tracking-tight">Request details</h2>
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-baseline justify-between gap-3">
+          <label for="id_purpose" class="text-sm font-bold">Purpose</label>
+          <span class="text-xs text-muted">15–300 characters</span>
+        </div>
+        <textarea id="id_purpose" name="purpose" rows="3" maxlength="300" placeholder="What will you use these for?"
+                  class="rounded-field border-[1.5px] {% if form.purpose.errors %}border-danger{% else %}border-line-strong{% endif %} bg-white px-3.5 py-3 text-[15px] leading-normal text-ink">{{ form.purpose.value|default:"" }}</textarea>
+        {% include "issue_requests/_field_error.html" with field=form.purpose %}
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="id_course_or_project" class="text-sm font-bold">Course or project <span class="font-normal text-muted">(optional)</span></label>
+        <input id="id_course_or_project" type="text" name="course_or_project" maxlength="150" value="{{ form.course_or_project.value|default:'' }}" placeholder="e.g. Smart Dustbin Level Monitor"
+               class="h-12 rounded-field border-[1.5px] border-line-strong bg-white px-3.5 text-[15px] text-ink">
+        {% include "issue_requests/_field_error.html" with field=form.course_or_project %}
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="id_duration_days" class="text-sm font-bold">Loan period (days)</label>
+        <input id="id_duration_days" type="number" name="duration_days" min="1" max="{{ max_loan_days }}" value="{{ form.duration_days.value|default:'' }}"
+               class="h-12 rounded-field border-[1.5px] {% if form.duration_days.errors %}border-danger{% else %}border-line-strong{% endif %} bg-white px-3.5 text-[15px] text-ink">
+        <span class="text-[13px] text-muted">Counted from the day you collect the items. Up to {{ max_loan_days }} days.</span>
+        {% include "issue_requests/_field_error.html" with field=form.duration_days %}
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-body">
+          <input type="checkbox" name="agree" {% if form.agree.value %}checked{% endif %} class="mt-0.5 size-5 flex-none accent-accent">
+          <span>I'll return the items in working condition by the due date, and report any damage to the lab.</span>
+        </label>
+        {% include "issue_requests/_field_error.html" with field=form.agree %}
+      </div>
+
+      <button type="submit" class="inline-flex h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent text-base font-bold text-paper">
+        Submit request
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </button>
+    </form>
+  </div>
+
+  {% else %}
+  <div class="flex flex-col items-center gap-3.5 rounded-3xl border-[1.5px] border-dashed border-[#C9D3D9] px-6 py-18 text-center">
+    <h2 class="m-0 text-[22px] font-bold">Your request is empty</h2>
+    <p class="m-0 text-base text-body">Browse the inventory and choose "Add to request" on the items you need.</p>
+    <a href="{% url 'inventory:list' %}" class="mt-1.5 inline-flex min-h-12 items-center rounded-full bg-accent px-6 text-[15px] font-semibold text-paper no-underline hover:text-paper">Browse inventory</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

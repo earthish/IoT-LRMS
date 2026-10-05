@@ -1,0 +1,24 @@
+{# The request panel on an instrument page. Needs `instrument`, `request_blocker`, `basket_quantity`. #}
+<div class="flex flex-col gap-3">
+  {% if request_blocker %}
+    <button type="button" disabled class="h-14 cursor-not-allowed rounded-full bg-line text-base font-bold text-[#6B7680]">Add to request</button>
+    <p class="m-0 text-center text-sm text-body">{{ request_blocker }}
+      {% if open_request_exists %}<a href="{% url 'issue_requests:list' %}" class="font-bold">View my requests</a>{% endif %}
+    </p>
+  {% else %}
+    <form method="post" action="{% url 'issue_requests:basket_add' instrument.pk %}" class="flex flex-wrap items-end gap-3">
+      {% csrf_token %}
+      <div class="flex flex-col gap-1.5">
+        <label for="add-qty" class="text-sm font-bold">Quantity</label>
+        <input id="add-qty" type="number" name="quantity" min="1" max="{{ instrument.quantity_available }}" value="{{ basket_quantity|default:1 }}"
+               class="h-14 w-24 rounded-field border-[1.5px] border-line-strong bg-white px-3 text-center text-lg font-bold text-ink">
+      </div>
+      <button type="submit" class="inline-flex h-14 flex-1 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent px-6 text-base font-bold text-paper">
+        {% if basket_quantity %}Update request{% else %}Add to request{% endif %}
+      </button>
+    </form>
+    {% if basket_quantity %}
+    <p class="m-0 text-sm text-body">{{ basket_quantity }} in your request. <a href="{% url 'issue_requests:basket' %}" class="font-bold">View request</a></p>
+    {% endif %}
+  {% endif %}
+</div>

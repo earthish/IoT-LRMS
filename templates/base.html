@@ -12,6 +12,13 @@
 <body class="flex min-h-screen flex-col bg-paper font-sans text-ink">
   {% include "partials/navbar.html" %}
   <main class="flex-1">
+    {% if messages %}
+    <div class="mx-auto flex max-w-[1200px] flex-col gap-2 px-6 pt-6" role="status">
+      {% for message in messages %}
+      <p class="m-0 rounded-xl px-4 py-3 text-sm font-semibold {% if message.level_tag == 'error' %}bg-danger-bg text-danger-text{% else %}bg-sky-deep text-deep{% endif %}">{{ message }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
   {% include "partials/footer.html" %}

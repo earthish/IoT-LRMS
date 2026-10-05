@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}My requests · IoT-LRMS{% endblock %}
+
+{% block content %}
+<div class="mx-auto flex max-w-[1000px] flex-col gap-8 px-6 pb-24 pt-[clamp(32px,5vw,56px)]">
+
+  <div class="flex flex-col gap-3">
+    <span class="text-[13px] font-bold uppercase tracking-[0.12em] text-accent">My requests</span>
+    <h1 class="m-0 text-[clamp(30px,4vw,44px)] font-extrabold leading-[1.05] tracking-tighter">Where your requests stand</h1>
+  </div>
+
+  {% if page.object_list %}
+  <ul class="m-0 flex list-none flex-col gap-4 p-0">
+    {% for issue_request in page.object_list %}
+    <li class="flex flex-col gap-4 rounded-card border border-line bg-white p-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="text-lg font-extrabold tracking-tight">{{ issue_request.reference }}</span>
+          {% include "issue_requests/_status.html" %}
+        </div>
+        <span class="text-sm text-muted">Requested {{ issue_request.requested_at|date:"j M Y" }}</span>
+      </div>
+
+      <ul class="m-0 flex list-none flex-col gap-1.5 p-0">
+        {% for item in issue_request.items.all %}
+        <li class="flex items-baseline justify-between gap-3 border-b border-line-soft pb-1.5 text-[15px] last:border-0">
+          <a href="{% url 'inventory:detail' item.instrument.pk %}" class="font-semibold text-ink no-underline hover:text-accent">{{ item.instrument.name }}</a>
+          <span class="text-body">× {{ item.quantity }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <dl class="m-0 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3 text-sm">
+        <div class="rounded-xl bg-paper px-3.5 py-3"><dt class="text-xs font-bold uppercase tracking-wider text-muted">Loan period</dt><dd class="m-0 mt-1 font-bold">{{ issue_request.duration_days }} day{{ issue_request.duration_days|pluralize }}</dd></div>
+        {% if issue_request.issued_at %}<div class="rounded-xl bg-paper px-3.5 py-3"><dt class="text-xs font-bold uppercase tracking-wider text-muted">Collected</dt><dd class="m-0 mt-1 font-bold">{{ issue_request.issued_at|date:"j M Y" }}</dd></div>{% endif %}
+        {% if issue_request.due_at %}<div class="rounded-xl bg-paper px-3.5 py-3"><dt class="text-xs font-bold uppercase tracking-wider text-muted">Return by</dt><dd class="m-0 mt-1 font-bold">{{ issue_request.due_at|date:"j M Y" }}</dd></div>{% endif %}
+        {% if issue_request.returned_at %}<div class="rounded-xl bg-paper px-3.5 py-3"><dt class="text-xs font-bold uppercase tracking-wider text-muted">Returned</dt><dd class="m-0 mt-1 font-bold">{{ issue_request.returned_at|date:"j M Y" }}</dd></div>{% endif %}
+      </dl>
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% if page.paginator.num_pages > 1 %}
+  <nav aria-label="Pages" class="flex items-center justify-center gap-3">
+    {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}" class="inline-flex min-h-11 items-center rounded-full border border-line-strong bg-white px-5 text-sm font-semibold no-underline">← Newer</a>{% endif %}
+    <span class="text-sm text-body">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?page={{ page.next_page_number }}" class="inline-flex min-h-11 items-center rounded-full border border-line-strong bg-white px-5 text-sm font-semibold no-underline">Older →</a>{% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="flex flex-col items-center gap-3.5 rounded-3xl border-[1.5px] border-dashed border-[#C9D3D9] px-6 py-18 text-center">
+    <h2 class="m-0 text-[22px] font-bold">No requests yet</h2>
+    <p class="m-0 text-base text-body">When you request items from the lab, they show up here.</p>
+    <a href="{% url 'inventory:list' %}" class="mt-1.5 inline-flex min-h-12 items-center rounded-full bg-accent px-6 text-[15px] font-semibold text-paper no-underline hover:text-paper">Browse inventory</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

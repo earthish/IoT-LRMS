@@ -27,5 +27,6 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     # Landing page after login
     path('inventory/', include('inventory.urls')),
+    path('requests/', include('issue_requests.urls')),
     path('', home, name='home'),
 ]

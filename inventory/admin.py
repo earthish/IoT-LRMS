@@ -1,19 +1,8 @@
 from django.contrib import admin
 
+from users.permissions import is_faculty, is_lab_assistant_or_above
+
 from .models import Category, Instrument
-
-
-# The admin also calls these for signed-out visitors (to build its login page).
-# An AnonymousUser has no "role", so getattr gives None instead of crashing.
-def is_faculty(user):
-    return user.is_superuser or getattr(user, "role", None) == "faculty"
-
-
-def is_lab_assistant_or_above(user):
-    return user.is_superuser or getattr(user, "role", None) in (
-        "lab_assistant",
-        "faculty",
-    )
 
 
 @admin.register(Category)
