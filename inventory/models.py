@@ -49,6 +49,13 @@ class Instrument(models.Model):
             ),
         ]
 
+    @property
+    def availability_percent(self):
+        """How full the availability bar is, 0-100."""
+        if self.quantity_total == 0:
+            return 0
+        return round(self.quantity_available * 100 / self.quantity_total)
+
     def clean(self):
         # Gives a readable form error before the database constraint is hit.
         if self.quantity_available > self.quantity_total:

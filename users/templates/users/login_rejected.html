@@ -1,12 +1,13 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Sign-in not allowed</title>
-</head>
-<body>
-  <h1>Sign-in not allowed</h1>
-  <p>Only verified XIM University Google accounts (@xim.edu.in) can sign in to the IoT Lab.</p>
-  <p><a href="/accounts/login/">Try again with your university account</a></p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Sign-in not allowed · IoT-LRMS{% endblock %}
+
+{% block content %}
+<div class="mx-auto flex max-w-xl flex-col items-center gap-4 px-6 py-24 text-center">
+  <span class="inline-flex size-14 items-center justify-center rounded-2xl bg-danger-bg text-danger">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>
+  </span>
+  <h1 class="m-0 text-3xl font-extrabold tracking-tight">Sign-in not allowed</h1>
+  <p class="m-0 text-base leading-relaxed text-body">Only verified XIM University Google accounts (@xim.edu.in or @stu.xim.edu.in) can sign in to IoT-LRMS.</p>
+  <a href="{% url 'account_login' %}" class="mt-2 inline-flex min-h-12 items-center rounded-full bg-accent px-6 font-bold text-paper no-underline hover:text-paper">Try again with your university account</a>
+</div>
+{% endblock %}

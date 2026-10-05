@@ -1,0 +1,46 @@
+{# Replaces allauth's login page. Google is the only way in, so there is no password form. #}
+{% extends "base.html" %}
+{% load socialaccount %}
+{% block title %}Sign in · IoT-LRMS{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-[1120px] px-6 pb-24 pt-[clamp(32px,6vw,72px)]">
+  <div class="flex flex-wrap overflow-hidden rounded-panel border border-line bg-white shadow-panel">
+
+    {# Brand panel #}
+    <div class="relative flex min-w-0 flex-[1_1_380px] flex-col justify-between gap-10 overflow-hidden bg-accent p-[clamp(32px,5vw,56px)] text-paper">
+      <span aria-hidden="true" class="absolute -bottom-36 -right-36 size-[360px] rounded-full bg-focus opacity-25"></span>
+      <span aria-hidden="true" class="absolute -top-14 right-16 size-40 rounded-full border-2 border-ice opacity-35"></span>
+      <div class="relative flex flex-col gap-4">
+        <span class="text-[13px] font-bold uppercase tracking-[0.12em] text-ice">IoT-LRMS</span>
+        <h1 class="m-0 text-[clamp(30px,3.6vw,42px)] font-extrabold leading-[1.1] tracking-tight">Welcome. Your next build starts here.</h1>
+      </div>
+      <ul class="relative m-0 flex list-none flex-col gap-4 p-0 text-base leading-normal">
+        <li class="flex items-start gap-3">
+          <svg class="mt-px flex-none" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CD5FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>Request boards, sensors and modules for your project
+        </li>
+        <li class="flex items-start gap-3">
+          <svg class="mt-px flex-none" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CD5FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>Track approvals, pick-ups and return dates
+        </li>
+        <li class="flex items-start gap-3">
+          <svg class="mt-px flex-none" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CD5FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>Lab staff review and issue requests in one place
+        </li>
+      </ul>
+    </div>
+
+    {# Sign-in panel #}
+    <div class="flex min-w-0 flex-[1_1_420px] flex-col justify-center gap-6 p-[clamp(32px,5vw,56px)]">
+      <div class="flex flex-col gap-2">
+        <h2 class="m-0 text-[30px] font-extrabold tracking-tight">Sign in</h2>
+        <p class="m-0 text-base text-body">Use your XIM University Google account.</p>
+      </div>
+
+      <a href="{% provider_login_url 'google' %}"
+         class="inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent text-base font-bold text-paper no-underline shadow-[0_10px_24px_-12px_rgb(53_88_114_/_0.7)] hover:text-paper">
+        Continue with Google
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

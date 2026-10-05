@@ -1,0 +1,6 @@
+{# Availability bar. Needs `item` with .badge and .availability_percent. #}
+<span class="block h-1.5 overflow-hidden rounded-full bg-line-soft">
+  <span class="block h-full rounded-full
+    {% if item.badge.tone == 'warn' %}bg-warn-bar{% elif item.badge.tone == 'idle' %}bg-idle-bar{% else %}bg-accent{% endif %}"
+    style="width: {{ item.availability_percent }}%"></span>
+</span>

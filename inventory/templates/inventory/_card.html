@@ -1,0 +1,20 @@
+{# One instrument in the grid. Needs `item` (an Instrument with .badge). #}
+<a href="{% url 'inventory:detail' item.pk %}"
+   aria-label="{{ item.name }}, {{ item.category.name }}, {{ item.quantity_available }} of {{ item.quantity_total }} available, {{ item.badge.label }}"
+   class="flex flex-col overflow-hidden rounded-card border border-line bg-white text-ink no-underline transition hover:-translate-y-0.5 hover:border-focus hover:text-ink hover:shadow-lift">
+  <span class="photo-placeholder relative flex aspect-[4/3] w-full items-center justify-center">
+    <span class="flex flex-col items-center gap-1.5 text-accent">
+      {% include "inventory/_photo_icon.html" %}
+      <span class="text-xs font-semibold tracking-wide">No photo yet</span>
+    </span>
+    <span class="absolute left-3 top-3">{% include "inventory/_badge.html" with badge=item.badge %}</span>
+  </span>
+  <span class="flex flex-1 flex-col gap-1.5 px-[18px] pb-5 pt-[18px]">
+    <span class="text-xs font-bold uppercase tracking-[0.08em] text-muted">{{ item.category.name }}</span>
+    <span class="text-[17px] font-bold leading-snug">{{ item.name }}</span>
+    <span class="mt-auto flex flex-col gap-2 pt-3">
+      <span class="text-sm text-body"><strong class="text-lg text-ink">{{ item.quantity_available }}</strong> / {{ item.quantity_total }} available</span>
+      {% include "inventory/_bar.html" %}
+    </span>
+  </span>
+</a>

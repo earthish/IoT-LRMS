@@ -47,5 +47,20 @@ class User(AbstractUser):
     def is_faculty_role(self):
         return self.role == self.Role.FACULTY
 
+    # Display helpers for templates (the navbar avatar and greeting).
+    @property
+    def display_name(self):
+        # Superusers made with createsuperuser have no name, so fall back to the email.
+        return self.name or self.email.split("@")[0]
+
+    @property
+    def short_name(self):
+        return self.display_name.split()[0]
+
+    @property
+    def initials(self):
+        words = self.display_name.replace(".", " ").split()
+        return "".join(word[0] for word in words[:2]).upper() or "?"
+
     def __str__(self):
         return self.email

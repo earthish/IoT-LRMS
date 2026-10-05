@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/* The IoT Lab design, as Tailwind theme values. A value named here becomes
+   utility classes, e.g. --color-paper gives bg-paper, text-paper, border-paper. */
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Page, text and borders */
+  --color-paper: #F7F8F0;
+  --color-ink: #1E3346;
+  --color-body: #4A5D6C;
+  --color-muted: #5B6B78;
+  --color-surface: #F3F5EE;
+  --color-line: #E3E6DA;
+  --color-line-strong: #D6DBCB;
+  --color-line-soft: #EEF0E8;
+  --color-fog: #A9BCCB;
+
+  /* Brand blues */
+  --color-accent: #355872;
+  --color-focus: #7AAACE;
+  --color-ice: #9CD5FF;
+  --color-sky: #EAF5FF;
+  --color-sky-pale: #E6F3FF;
+  --color-sky-deep: #DCEFFF;
+  --color-deep: #234459;
+
+  /* Stock tones: "warn" = low stock / in use, "idle" = out of stock / maintenance */
+  --color-warn-bg: #FFEFD2;
+  --color-warn-text: #7A4300;
+  --color-warn-dot: #C26A00;
+  --color-warn-bar: #E0922F;
+  --color-idle-bg: #ECEAE2;
+  --color-idle-text: #4F4F48;
+  --color-idle-dot: #8A8A80;
+  --color-idle-bar: #B9B9AE;
+
+  /* Errors */
+  --color-danger: #B3261E;
+  --color-danger-bg: #FDECEA;
+  --color-danger-text: #8A1F14;
+
+  /* Pastels for the home page cards */
+  --color-lime: #C5F081;
+  --color-sage: #BACFBE;
+
+  --radius-card: 20px;
+  --radius-panel: 28px;
+  --radius-field: 14px;
+
+  --shadow-lift: 0 18px 36px -20px rgb(30 51 70 / 0.35);
+  --shadow-menu: 0 24px 48px -20px rgb(30 51 70 / 0.35);
+  --shadow-panel: 0 30px 60px -36px rgb(30 51 70 / 0.35);
+}
+
+@layer base {
+  a { color: var(--color-accent); }
+  a:hover { color: var(--color-ink); }
+
+  /* One visible keyboard-focus style for every link, button and field */
+  :focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+  /* Hide the default arrow on <details> menus (we draw our own) */
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* Striped box shown where an instrument photo will go */
+@utility photo-placeholder {
+  background-color: var(--color-sky);
+  background-image: repeating-linear-gradient(135deg, rgb(122 170 206 / 0.16) 0 10px, transparent 10px 20px);
+}

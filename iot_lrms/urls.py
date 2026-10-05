@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Google login: /accounts/login/ and /accounts/google/login/callback/
     path('accounts/', include('allauth.urls')),
-    # TEMPORARY landing page after login, until the React frontend exists.
+    # Landing page after login
+    path('inventory/', include('inventory.urls')),
     path('', home, name='home'),
 ]

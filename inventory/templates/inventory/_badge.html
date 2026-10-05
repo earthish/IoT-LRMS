@@ -1,0 +1,6 @@
+{# Status pill. Needs `badge` (key, label, tone) from services.get_badge. #}
+<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-[5px] text-xs font-bold
+  {% if badge.tone == 'warn' %}bg-warn-bg text-warn-text{% elif badge.tone == 'idle' %}bg-idle-bg text-idle-text{% else %}bg-sky-deep text-deep{% endif %}">
+  <span class="size-[7px] rounded-full
+    {% if badge.tone == 'warn' %}bg-warn-dot{% elif badge.tone == 'idle' %}bg-idle-dot{% else %}bg-accent{% endif %}"></span>{{ badge.label }}
+</span>

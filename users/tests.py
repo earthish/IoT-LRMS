@@ -223,3 +223,25 @@ class StaffFlagTests(TestCase):
         admin = User.objects.create_superuser("admin@xim.edu.in", "pass12345!")
         admin.save()
         self.assertTrue(admin.is_staff)
+
+
+class DisplayNameTests(TestCase):
+    def test_name_initials_and_short_name(self):
+        user = User(email="ucse24044@stu.xim.edu.in", name="Asha Rao")
+        self.assertEqual(user.display_name, "Asha Rao")
+        self.assertEqual(user.initials, "AR")
+        self.assertEqual(user.short_name, "Asha")
+
+    def test_falls_back_to_email_when_name_is_empty(self):
+        user = User(email="ucse24044@stu.xim.edu.in")
+        self.assertEqual(user.display_name, "ucse24044")
+        self.assertEqual(user.initials, "U")
+        self.assertEqual(user.short_name, "ucse24044")
+
+
+class SignInPageTests(TestCase):
+    def test_login_page_has_google_button_and_no_password_field(self):
+        response = self.client.get("/accounts/login/")
+        self.assertContains(response, "Continue with Google")
+        self.assertContains(response, "/accounts/google/login/")
+        self.assertNotContains(response, 'type="password"')
