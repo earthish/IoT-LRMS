@@ -6,18 +6,22 @@ This is a university deliverable. The developer must be able to explain every pa
 
 ## Stack
 
-- Backend: Django + Django REST Framework
+- Backend: Django
 - Database: PostgreSQL (SQLite is acceptable for early local dev only)
 - Auth: `django-allauth` with the Google provider
-- Frontend: React (consumes the DRF JSON API). Django admin is used as the staff/faculty interface initially.
+- Frontend: **Django templates + Tailwind**, server-rendered. Views query the database directly and render HTML — there is no separate frontend project and no API layer for the core flow (auth, inventory, issue requests, bookings). Django admin is used as the staff/faculty approval interface initially.
+- Django REST Framework is installed but used **only** for isolated features that need async JSON calls from a template via `fetch()` — currently just the Oracle endpoint (see below). Do not build DRF serializers/viewsets for inventory, issue requests, bookings, or users. Those are plain Django views returning rendered templates.
 - QR codes: `qrcode` (Python)
 - Config: environment variables via `python-decouple` or `django-environ`
 - Oracle LLM: a fast, lightweight model behind a small provider wrapper (see below)
 
+### Why templates, not an API-consuming frontend
+This project has no separate client app (no mobile app, no SPA) right now. A full API layer (serializers, viewsets, a separate frontend fetching and re-rendering JSON) adds a layer of indirection with no payoff here, and is harder for a teammate with no frontend-framework experience to work on. Django's own request → view → template → response cycle is simpler to build, debug, and explain. If an Android app or SPA is ever built later, the DRF layer can be added incrementally app-by-app at that point — it does not need to be designed in now.
+
 ## Project layout
 
 ```
-iot_lrms/               # project settings
+iot_lab/                # project settings
 users/                  # custom user model, roles, Google auth hooks
 inventory/              # Instrument model, categories, QR generation
 issue_requests/         # IssueRequest workflow (request -> approve -> return)
@@ -31,7 +35,7 @@ Build one app at a time in this order: `users` -> `inventory` -> `issue_requests
 
 ## Authentication rules (security critical)
 
-- Only accounts with an email on exactly `xim.edu.in` (employees) or `stu.xim.edu.in` (students) may sign in. Everyone else is rejected, including lookalikes such as `notxim.edu.in`, `xim.edu.in.evil.com` and other subdomains.
+- Only accounts with an email ending in `@xim.edu.in` may sign in. Everyone else is rejected.
 - Enforce this **server-side**. Passing the `hd` hosted-domain parameter to Google is only a UX hint and can be bypassed, so it is not sufficient on its own. Implement a custom allauth adapter (`DefaultSocialAccountAdapter` / `DefaultAccountAdapter`) that checks the email domain and that the email is verified, and rejects sign-in and sign-up otherwise.
 - Disable local username/password signup. Google is the only login method. A superuser created with `createsuperuser` is fine for initial admin access.
 - Never trust role or domain information sent from the frontend. Derive it from the authenticated user on the server.
@@ -45,7 +49,7 @@ Use a custom user model from the very first migration (`AUTH_USER_MODEL = "users
 - `lab_assistant`: everything a student can do, plus approve/reject requests and mark instruments returned or under maintenance
 - `faculty`: everything a lab assistant can do, plus manage inventory, view the dashboard, and export reports
 
-Enforce permissions in DRF permission classes (not only in the UI). New users default to `student`. Only a superuser or faculty can change roles.
+Enforce permissions in the Django views themselves (e.g. a `role_required` decorator or mixin checked at the top of each view) — not only by hiding buttons in the template. New users default to `student`. Only a superuser or faculty can change roles (via Django admin).
 
 ## Data model
 
@@ -97,7 +101,7 @@ OracleSuggestion
 
 A "monk/Socrates" style persona that suggests what can be built with the components currently available.
 
-- Endpoint: `POST /api/oracle/suggest/` (authenticated). Optional body field `context` (one line from the student, max 200 characters).
+- This is the one place DRF is used. Endpoint: `POST /api/oracle/suggest/` (authenticated, session-based). Optional body field `context` (one line from the student, max 200 characters). Called from a template via `fetch()` so the suggestion can appear without a full page reload.
 - Query instruments with `status="available"` (and `quantity_available > 0`), build a compact comma-separated list, and send it to the LLM.
 - Put the LLM call in `oracle/llm.py` behind a single function, e.g. `generate_suggestion(system_prompt, user_prompt) -> str`. Read the provider, model name, and API key from environment variables so the provider can be changed without touching the views.
 - System prompt: a calm, slightly cryptic lab monk. Suggest 2-3 project ideas buildable this week using only the listed components. 2-3 sentences each, practical and specific. The tone carries the personality; the technical content must stay accurate and must not assume components that are not in the list.
@@ -106,11 +110,10 @@ A "monk/Socrates" style persona that suggests what can be built with the compone
 - Set a request timeout. On any failure, return a friendly fallback message ("The Oracle is meditating. Try again shortly.") with a 200 status and log the error server-side.
 - Save each suggestion to `OracleSuggestion`.
 
-## API conventions
+## API conventions (Oracle only)
 
-- All endpoints under `/api/`, JSON only, DRF viewsets and serializers, token/session auth via allauth session.
-- Paginate list endpoints. Use clear status codes and error messages in a consistent shape.
-- Use `select_related` / `prefetch_related` on list queries.
+- Lives under `/api/oracle/`, JSON only, session auth via allauth. No other app should add `/api/` endpoints unless a real second client (mobile app, SPA) is actually being built.
+- Everywhere else: plain Django views, `select_related` / `prefetch_related` on queries that list or join, and Django's built-in `Paginator` for long lists rendered in templates.
 
 ## Code conventions
 
