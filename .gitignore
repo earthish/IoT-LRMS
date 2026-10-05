@@ -10,3 +10,6 @@ design/
 
 # Tailwind standalone CLI binary (downloaded locally)
 tools/tailwindcss
+
+# Project report (LaTeX, kept in Overleaf)
+report/
