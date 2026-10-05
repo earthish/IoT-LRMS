@@ -21,7 +21,7 @@ This project has no separate client app (no mobile app, no SPA) right now. A ful
 ## Project layout
 
 ```
-iot_lab/                # project settings
+iot_lrms/               # project settings
 users/                  # custom user model, roles, Google auth hooks
 inventory/              # Instrument model, categories, QR generation
 issue_requests/         # IssueRequest workflow (request -> approve -> return)
@@ -35,7 +35,7 @@ Build one app at a time in this order: `users` -> `inventory` -> `issue_requests
 
 ## Authentication rules (security critical)
 
-- Only accounts with an email ending in `@xim.edu.in` may sign in. Everyone else is rejected.
+- Only accounts with an email on exactly `xim.edu.in` (employees) or `stu.xim.edu.in` (students) may sign in. Everyone else is rejected, including lookalikes such as `notxim.edu.in`, `xim.edu.in.evil.com` and other subdomains.
 - Enforce this **server-side**. Passing the `hd` hosted-domain parameter to Google is only a UX hint and can be bypassed, so it is not sufficient on its own. Implement a custom allauth adapter (`DefaultSocialAccountAdapter` / `DefaultAccountAdapter`) that checks the email domain and that the email is verified, and rejects sign-in and sign-up otherwise.
 - Disable local username/password signup. Google is the only login method. A superuser created with `createsuperuser` is fine for initial admin access.
 - Never trust role or domain information sent from the frontend. Derive it from the authenticated user on the server.
@@ -117,7 +117,7 @@ A "monk/Socrates" style persona that suggests what can be built with the compone
 
 ## Code conventions
 
-- Python 3.11+, follow PEP 8, format with `black`, sort imports with `isort`.
+- Python 3.9 (the current venv). Keep code 3.9-compatible: no `match` statements and no `X | Y` type-hint syntax. Follow PEP 8, format with `black`, sort imports with `isort`.
 - Small focused functions; put business logic (approval, booking, availability) in a `services.py` per app rather than inside views.
 - Every app gets tests in `tests.py` or `tests/`. At minimum cover: non-`xim.edu.in` login rejected, role permissions, overlapping booking rejected, approval/return updates availability correctly, Oracle fallback on LLM failure.
 - Migrations are committed. Never edit an applied migration; add a new one.

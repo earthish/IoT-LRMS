@@ -25,6 +25,13 @@ class User(AbstractUser):
     objects = UserManager()
 
     def save(self, *args, **kwargs):
+        # Lab assistants and faculty need admin access, so is_staff follows
+        # the role (superusers always keep it). Roles are changed in the admin
+        # by a superuser or faculty, so no one can grant themselves access.
+        self.is_staff = self.is_superuser or self.role in (
+            self.Role.LAB_ASSISTANT,
+            self.Role.FACULTY,
+        )
         # Unique + nullable: store "" as NULL so two users without a roll
         # number do not clash on the unique constraint.
         if not self.roll_number:
